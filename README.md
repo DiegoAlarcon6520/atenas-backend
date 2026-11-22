@@ -117,7 +117,11 @@ Todas tienen la misma forma, para que la app las lea siempre igual:
   se guarda ninguna.
 - **No se borra lo que tiene historial.** Una oportunidad con gestiones, un
   contacto asignado o un usuario con actividad responden 409: se descartan o
-  se desactivan, como en la app.
+  se desactivan, como en la app. Lo que sí se puede eliminar arrastra lo que
+  depende de él, en orden para no romper las llaves foráneas: una oportunidad
+  sin gestiones borra antes sus evidencias, y una organización sin
+  oportunidades borra antes sus contactos. La app muestra el mensaje del 409
+  tal cual, así que cada mensaje explica qué hacer en su lugar.
 - **El catálogo de regiones y comunas es de solo lectura.** Es un dato fijo
   que los usuarios consultan pero no administran.
 - **Fechas en milisegundos epoch, como en la app.** Así no hay conversiones
@@ -137,6 +141,7 @@ mvn test
 ```
 
 O en IntelliJ: clic derecho en `src/test/java` → *Run 'All Tests'*.
+Son **62 pruebas** (JUnit 5 + Mockito).
 
 Hay dos tipos de prueba, y cada uno responde una pregunta distinta:
 
@@ -147,6 +152,9 @@ Hay dos tipos de prueba, y cada uno responde una pregunta distinta:
 | `domain/TransicionesEstadoTest` | Misma máquina de estados que la app: quién avanza, quién retrocede, cierre |
 | `domain/ReglasNegocioTest` | Coherencia de fechas del evento y de la gestión, normalización de datos |
 | `service/SeguimientoServiceTest` | Registrar una gestión: permisos por perfil, oportunidad cerrada, saltos inválidos, actualización del contacto |
+| `service/OportunidadServiceTest` | Eliminar: rechazo con gestiones (409), borrado de evidencias antes que la oportunidad, inexistente (404) |
+| `service/OrganizacionServiceTest` | Eliminar: rechazo con oportunidades (409), borrado de contactos antes que la organización, inexistente (404) |
+| `service/ContactoServiceTest` | Eliminar: rechazo si está asignado a oportunidades (409), borrado permitido, inexistente (404) |
 
 **Endpoints:** ¿esa decisión llega a la app con el código HTTP y el JSON
 correctos? Usan `@WebMvcTest` y `MockMvc`: levantan solo la capa web, sin
@@ -157,6 +165,7 @@ servidor ni base, y simulan el servicio.
 | `controller/AuthControllerTest` | Login correcto (200, sin la clave en el JSON), incorrecto (401), campos vacíos (400) |
 | `controller/OportunidadControllerTest` | 201 al crear, 400 por campos o valores inválidos, 403 por perfil, 404 inexistente, 409 cerrada, historial ordenado |
 | `controller/ContactoControllerTest` | Correo y teléfono mal escritos (400), borrado permitido (204) y protegido (409) |
+| `controller/OrganizacionControllerTest` | Borrado permitido (204), protegido (409, con el motivo en `mensaje`) e inexistente (404) |
 | `controller/SincronizacionControllerTest` | Parámetro faltante (400) y listas vacías en vez de nulas |
 
 Las pruebas no necesitan XAMPP encendido: no usan la base de datos.
