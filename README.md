@@ -138,10 +138,25 @@ mvn test
 
 O en IntelliJ: clic derecho en `src/test/java` → *Run 'All Tests'*.
 
+Hay dos tipos de prueba, y cada uno responde una pregunta distinta:
+
+**Reglas de negocio:** ¿el servidor decide bien?
+
 | Archivo | Qué verifica |
 |---|---|
 | `domain/TransicionesEstadoTest` | Misma máquina de estados que la app: quién avanza, quién retrocede, cierre |
 | `domain/ReglasNegocioTest` | Coherencia de fechas del evento y de la gestión, normalización de datos |
 | `service/SeguimientoServiceTest` | Registrar una gestión: permisos por perfil, oportunidad cerrada, saltos inválidos, actualización del contacto |
+
+**Endpoints:** ¿esa decisión llega a la app con el código HTTP y el JSON
+correctos? Usan `@WebMvcTest` y `MockMvc`: levantan solo la capa web, sin
+servidor ni base, y simulan el servicio.
+
+| Archivo | Qué verifica |
+|---|---|
+| `controller/AuthControllerTest` | Login correcto (200, sin la clave en el JSON), incorrecto (401), campos vacíos (400) |
+| `controller/OportunidadControllerTest` | 201 al crear, 400 por campos o valores inválidos, 403 por perfil, 404 inexistente, 409 cerrada, historial ordenado |
+| `controller/ContactoControllerTest` | Correo y teléfono mal escritos (400), borrado permitido (204) y protegido (409) |
+| `controller/SincronizacionControllerTest` | Parámetro faltante (400) y listas vacías en vez de nulas |
 
 Las pruebas no necesitan XAMPP encendido: no usan la base de datos.
